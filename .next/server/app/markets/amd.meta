@@ -1,0 +1,17 @@
+{
+  "headers": {
+    "x-nextjs-stale-time": "300",
+    "x-nextjs-prerender": "1",
+    "x-next-cache-tags": "_N_T_/layout,_N_T_/(app)/layout,_N_T_/(app)/markets/layout,_N_T_/(app)/markets/[symbol]/layout,_N_T_/(app)/markets/[symbol]/page,_N_T_/markets/amd"
+  },
+  "segmentPaths": [
+    "/_tree",
+    "/_full",
+    "/!KGFwcCk/markets/$d$symbol/__PAGE__",
+    "/!KGFwcCk/markets/$d$symbol",
+    "/!KGFwcCk/markets",
+    "/!KGFwcCk",
+    "/_index",
+    "/_head"
+  ]
+}

@@ -1,25 +1,166 @@
-# CODING AGENTS: READ THIS FIRST
+# Oswol — AI Market Intelligence Terminal
 
-This is a **handoff bundle** from Claude Design (claude.ai/design).
+> "The AI market intelligence terminal for the next generation."
 
-A user mocked up designs in HTML/CSS/JS using an AI design tool, then exported this bundle so a coding agent can implement the designs for real.
+Oswol helps users know **what moved**, **why it moved**, **who is behind the move**, and **whether the signal is real or just noise**.
 
-## What you should do — IMPORTANT
+## What Oswol Is
 
-**Read the chat transcripts first.** There are 1 chat transcript(s) in `chats/`. The transcripts show the full back-and-forth between the user and the design assistant — they tell you **what the user actually wants** and **where they landed** after iterating. Don't skip them. The final HTML files are the output, but the chat is where the intent lives.
+- **AI-powered market intelligence** — not a broker, not a trading app
+- **Explain This Move** — structured AI analysis of any price movement
+- **Smart Money Radar** — politician trades, insider filings, hedge fund 13F data
+- **Social Narrative Scanner** — velocity-ranked narratives with hype risk scoring
+- **Market Heat Map** — Nasdaq-100, sectors, ETFs, crypto visual maps
+- **AI Copilot** — cited conversational research assistant
+- **Newsletter Builder** — one-click professional market newsletters
 
-**Find the primary design file under `project/` and read it top to bottom.** The chat transcripts will tell you which file the user was last iterating on. Then **follow its imports**: open every file it pulls in (shared components, CSS, scripts) so you understand how the pieces fit together before you start implementing.
+## Safety & Compliance
 
-**If anything is ambiguous, ask the user to confirm before you start implementing.** It's much cheaper to clarify scope up front than to build the wrong thing.
+Oswol does **not** provide investment advice. All outputs include:
+- Source citations and confidence scores
+- Filing delay warnings (politician trades often 30-45 days delayed)
+- Demo data labels
+- Financial safety guardrails (no buy/sell recommendations)
 
-## About the design files
+## Tech Stack
 
-The design medium is **HTML/CSS/JS** — these are prototypes, not production code. Your job is to **recreate them pixel-perfectly** in whatever technology makes sense for the target codebase (React, Vue, native, whatever fits). Match the visual output; don't copy the prototype's internal structure unless it happens to fit.
+| Layer | Technology |
+|-------|-----------|
+| Frontend | Next.js 16, React 19, TypeScript |
+| Styling | Tailwind CSS 4 |
+| Charts | Recharts |
+| Animation | Framer Motion |
+| State | Zustand, TanStack Query |
+| Validation | Zod |
+| Database | PostgreSQL (Prisma ORM) |
+| Cache | Redis |
+| AI | OpenAI (plug in key to activate) |
 
-**Don't render these files in a browser or take screenshots unless the user asks you to.** Everything you need — dimensions, colors, layout rules — is spelled out in the source. Read the HTML and CSS directly; a screenshot won't tell you anything they don't.
+## Quick Start
 
-## Bundle contents
+```bash
+# 1. Install dependencies
+npm install
 
-- `README.md` — this file
-- `chats/` — conversation transcripts (read these!)
-- `project/` — the `Oswol` project files (HTML prototypes, assets, components)
+# 2. Start database and Redis
+docker-compose up -d
+
+# 3. Set up environment
+cp .env.example .env
+
+# 4. Generate Prisma client
+npx prisma generate
+
+# 5. Seed demo data
+npx prisma db seed
+
+# 6. Start development server
+npm run dev
+```
+
+## Environment Variables
+
+See `.env.example` for all required and optional variables.
+
+Minimum required for demo mode:
+```
+DATABASE_URL=postgresql://oswol:oswol_dev_password@localhost:5432/oswol_db
+REDIS_URL=redis://localhost:6379
+```
+
+Add `OPENAI_API_KEY` to activate real AI explanations.
+
+## Pages
+
+| Route | Description |
+|-------|-------------|
+| /dashboard | Main market intelligence dashboard |
+| /markets | Asset explorer with search |
+| /markets/[symbol] | Individual asset detail + Explain This Move |
+| /heatmap | Market heat maps (Nasdaq-100, sectors, ETFs, crypto) |
+| /smart-money | Politician, insider, hedge fund disclosures |
+| /social | Social narrative scanner |
+| /watchlist | Watchlist intelligence |
+| /brief | Daily AI market brief + design guide |
+| /copilot | AI conversational research assistant |
+| /newsletter | AI newsletter builder |
+
+## MCP Servers
+
+Oswol provides MCP servers for AI agent integration:
+
+```bash
+# Install Python dependencies
+pip install -r mcp/requirements.txt
+
+# Run a server (STDIO mode)
+python mcp/market_server.py
+```
+
+See `.codex/config.toml` for Codex/Claude integration.
+
+## CLI
+
+```bash
+# Explain a market move
+npx tsx cli/index.ts explain NVDA
+
+# Generate market brief
+npx tsx cli/index.ts brief
+
+# Show heat map
+npx tsx cli/index.ts heatmap sectors
+
+# List asset universe
+npx tsx cli/index.ts assets list
+```
+
+## Architecture
+
+```
+src/
+├── app/
+│   ├── (app)/          # All authenticated routes
+│   │   ├── dashboard/  # Main dashboard
+│   │   ├── markets/    # Asset explorer + detail
+│   │   ├── heatmap/    # Heat maps
+│   │   ├── smart-money/# Politician + insider + funds
+│   │   ├── social/     # Narrative scanner
+│   │   ├── watchlist/  # Watchlist intelligence
+│   │   ├── copilot/    # AI chat interface
+│   │   ├── newsletter/ # Newsletter builder
+│   │   └── brief/      # Daily brief
+│   └── api/            # API routes
+├── components/
+│   ├── layout/         # AppShell, Sidebar, Topbar
+│   ├── ai/             # ExplainMovePanel
+│   └── shared/         # Common components
+├── lib/
+│   ├── agents/         # AI agent implementations
+│   ├── compliance/     # Financial safety guardrails
+│   ├── data/           # Mock data providers
+│   └── scoring/        # Signal scoring engines
+sdk/                    # TypeScript SDK
+cli/                    # CLI tool
+mcp/                    # Python MCP servers
+prisma/                 # Database schema + seeds
+```
+
+## Demo Mode
+
+All data is demo/mock data for illustration purposes. The platform is architected for real data integration via provider interfaces in `src/lib/providers/`.
+
+## Roadmap
+
+- [ ] Real market data provider integration
+- [ ] OpenAI-powered explanations (add API key to activate)
+- [ ] User authentication (NextAuth)
+- [ ] Alert system
+- [ ] Mobile-responsive layouts
+- [ ] Arabic/bilingual support
+- [ ] GCC market coverage
+- [ ] Production data pipeline
+
+## Disclaimer
+
+Oswol is a research and intelligence platform. It does not execute trades or provide personalized investment advice. All public filing disclosures carry legal reporting delays. Past performance is not indicative of future results.

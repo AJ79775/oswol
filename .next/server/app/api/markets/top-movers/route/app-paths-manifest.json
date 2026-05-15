@@ -1,0 +1,3 @@
+{
+  "/api/markets/top-movers/route": "app/api/markets/top-movers/route.js"
+}

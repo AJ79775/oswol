@@ -1,0 +1,3 @@
+{
+  "/api/heatmap/nasdaq100/route": "app/api/heatmap/nasdaq100/route.js"
+}

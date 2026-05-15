@@ -1,0 +1,177 @@
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import "tailwindcss";
+
+/* ===== OSWOL DESIGN TOKENS ===== */
+:root {
+  /* Day mode (default) */
+  --bg-0: #FFFFFF;
+  --bg-1: #FFFFFF;
+  --bg-2: #F7F5EE;
+  --bg-3: #ECE6D4;
+  --bg-4: #DDD2B5;
+
+  --ink-hi: #1F262C;
+  --ink-md: #3F4A53;
+  --ink-lo: #6F7780;
+  --ink-dim: #9DA1A6;
+
+  --slate: #2A3036;
+  --champagne: #D8C6A7;
+  --champagne-deep: #8B7350;
+
+  --ai: #0891B2;
+  --ai-soft: rgba(8, 145, 178, 0.10);
+  --social: #6D28D9;
+  --up: #047857;
+  --down: #DC2626;
+  --warn: #B45309;
+
+  --border: rgba(31, 38, 44, 0.10);
+  --border-md: rgba(31, 38, 44, 0.14);
+  --shadow-sm: 0 1px 3px rgba(31,38,44,0.08);
+  --shadow-md: 0 4px 12px rgba(31,38,44,0.10);
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+
+  --sidebar-width: 240px;
+  --topbar-height: 56px;
+
+  /* Mapped for Tailwind compatibility */
+  --background: var(--bg-0);
+  --foreground: var(--ink-hi);
+}
+
+/* Night mode */
+[data-theme="night"] {
+  --bg-0: #111418;
+  --bg-1: #161B20;
+  --bg-2: #1C2128;
+  --bg-3: #242B34;
+  --bg-4: #2E3640;
+
+  --ink-hi: #F0F2F4;
+  --ink-md: #C8CDD2;
+  --ink-lo: #8A9099;
+  --ink-dim: #5A6068;
+
+  --slate: #E8EDF2;
+  --champagne: #3A3028;
+  --champagne-deep: #C9A97A;
+
+  --border: rgba(240, 242, 244, 0.08);
+  --border-md: rgba(240, 242, 244, 0.12);
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.3);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.4);
+
+  --background: var(--bg-0);
+  --foreground: var(--ink-hi);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans), system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), 'JetBrains Mono', monospace;
+  --font-display: 'Sora', var(--font-geist-sans), sans-serif;
+}
+
+/* ===== BASE STYLES ===== */
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+}
+
+body {
+  background: var(--bg-0);
+  color: var(--ink-hi);
+  font-family: var(--font-geist-sans, system-ui, sans-serif);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ===== SCROLLBAR STYLES ===== */
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--champagne);
+  border-radius: 2px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--champagne-deep);
+}
+
+/* ===== UTILITY CLASSES ===== */
+.font-display {
+  font-family: 'Sora', var(--font-geist-sans), sans-serif;
+}
+.font-mono-nums {
+  font-family: 'JetBrains Mono', var(--font-geist-mono), monospace;
+  font-feature-settings: 'tnum' 1;
+}
+
+.text-up { color: var(--up); }
+.text-down { color: var(--down); }
+.text-warn { color: var(--warn); }
+.text-ai { color: var(--ai); }
+
+.bg-up-soft { background: rgba(4, 120, 87, 0.08); }
+.bg-down-soft { background: rgba(220, 38, 38, 0.08); }
+.bg-ai-soft { background: var(--ai-soft); }
+
+.card {
+  background: var(--bg-1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+}
+
+.card-section {
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+
+/* ===== TICKER STRIP ANIMATION ===== */
+@keyframes ticker-slide {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+.ticker-track {
+  animation: ticker-slide 30s linear infinite;
+}
+.ticker-track:hover {
+  animation-play-state: paused;
+}
+
+/* ===== DEMO BADGE ===== */
+.demo-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  background: rgba(180, 83, 9, 0.1);
+  color: var(--warn);
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* ===== NAV ACTIVE STATE ===== */
+.nav-item-active {
+  background: var(--bg-3);
+  color: var(--ink-hi);
+}
+.nav-item-active .nav-icon {
+  color: var(--ai);
+}

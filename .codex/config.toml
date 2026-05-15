@@ -1,0 +1,24 @@
+[mcp_servers.oswol_market]
+command = "python"
+args = ["mcp/market_server.py"]
+env = { OSWOL_API_URL = "http://localhost:3000", OSWOL_API_KEY = "dev-key" }
+
+[mcp_servers.oswol_smart_money]
+command = "python"
+args = ["mcp/smart_money_server.py"]
+env = { OSWOL_API_URL = "http://localhost:3000", OSWOL_API_KEY = "dev-key" }
+
+[mcp_servers.oswol_social]
+command = "python"
+args = ["mcp/social_server.py"]
+env = { OSWOL_API_URL = "http://localhost:3000", OSWOL_API_KEY = "dev-key" }
+
+[mcp_servers.oswol_newsletter]
+command = "python"
+args = ["mcp/newsletter_server.py"]
+env = { OSWOL_API_URL = "http://localhost:3000", OSWOL_API_KEY = "dev-key" }
+
+[mcp_servers.oswol_asset_universe]
+command = "python"
+args = ["mcp/asset_universe_server.py"]
+env = { OSWOL_API_URL = "http://localhost:3000", OSWOL_API_KEY = "dev-key" }

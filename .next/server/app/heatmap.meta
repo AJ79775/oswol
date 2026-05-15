@@ -1,0 +1,16 @@
+{
+  "headers": {
+    "x-nextjs-stale-time": "300",
+    "x-nextjs-prerender": "1",
+    "x-next-cache-tags": "_N_T_/layout,_N_T_/(app)/layout,_N_T_/(app)/heatmap/layout,_N_T_/(app)/heatmap/page,_N_T_/heatmap"
+  },
+  "segmentPaths": [
+    "/_tree",
+    "/_full",
+    "/!KGFwcCk/heatmap/__PAGE__",
+    "/!KGFwcCk/heatmap",
+    "/!KGFwcCk",
+    "/_index",
+    "/_head"
+  ]
+}

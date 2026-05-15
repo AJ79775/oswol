@@ -1,0 +1,3 @@
+{
+  "/api/smart-money/ticker/[symbol]/route": "app/api/smart-money/ticker/[symbol]/route.js"
+}

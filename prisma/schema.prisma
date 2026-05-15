@@ -1,0 +1,336 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum AssetClass {
+  EQUITY
+  ETF
+  CRYPTO
+  FX
+  COMMODITY
+  RATE
+  INDEX
+  BOND
+  VOLATILITY
+  MACRO
+}
+
+enum UserRole {
+  FREE
+  PRO
+  TRADER
+  CREATOR
+  ADMIN
+}
+
+model Asset {
+  id          String     @id @default(cuid())
+  symbol      String     @unique
+  name        String
+  assetClass  AssetClass
+  exchange    String?
+  currency    String     @default("USD")
+  sector      String?
+  industry    String?
+  country     String     @default("US")
+  isActive    Boolean    @default(true)
+  isDemoData  Boolean    @default(true)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  watchlistItems        WatchlistItem[]
+  politicianTrades      PoliticianTrade[]
+  insiderTrades         InsiderTrade[]
+  institutionalHoldings InstitutionalHolding[]
+  socialMentions        SocialMention[]
+  priceSnapshots        PriceSnapshot[]
+  aiInsights            AIInsight[]
+}
+
+model PriceSnapshot {
+  id         String   @id @default(cuid())
+  assetId    String
+  asset      Asset    @relation(fields: [assetId], references: [id])
+  price      Float
+  open       Float?
+  high       Float?
+  low        Float?
+  volume     Float?
+  changeAmt  Float?
+  changePct  Float?
+  marketCap  Float?
+  timestamp  DateTime
+  isDemoData Boolean  @default(true)
+  createdAt  DateTime @default(now())
+
+  @@index([assetId, timestamp])
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  role      UserRole @default(FREE)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  watchlists   Watchlist[]
+  newsletters  Newsletter[]
+  alerts       Alert[]
+  apiKeys      ApiKey[]
+  subscription Subscription?
+}
+
+model Watchlist {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  items WatchlistItem[]
+}
+
+model WatchlistItem {
+  id          String    @id @default(cuid())
+  watchlistId String
+  watchlist   Watchlist @relation(fields: [watchlistId], references: [id])
+  assetId     String
+  asset       Asset     @relation(fields: [assetId], references: [id])
+  addedAt     DateTime  @default(now())
+
+  @@unique([watchlistId, assetId])
+}
+
+model PoliticianTrade {
+  id                 String   @id @default(cuid())
+  politicianName     String
+  chamber            String
+  party              String?
+  stateOrDistrict    String?
+  assetId            String?
+  asset              Asset?   @relation(fields: [assetId], references: [id])
+  ticker             String
+  companyName        String?
+  assetType          String?
+  transactionType    String
+  valueRange         String?
+  transactionDate    DateTime
+  disclosureDate     DateTime
+  reportingDelayDays Int
+  sourceUrl          String?
+  sourceName         String   @default("STOCK Act")
+  signalScore        Int?
+  signalLabel        String?
+  aiInterpretation   String?
+  isDemoData         Boolean  @default(true)
+  rawPayload         Json?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
+
+model InsiderTrade {
+  id                   String   @id @default(cuid())
+  insiderName          String
+  role                 String
+  companyName          String
+  assetId              String?
+  asset                Asset?   @relation(fields: [assetId], references: [id])
+  ticker               String
+  transactionType      String
+  shares               Float?
+  price                Float?
+  value                Float?
+  transactionDate      DateTime
+  filingDate           DateTime
+  formType             String?
+  sourceUrl            String?
+  sourceName           String   @default("SEC EDGAR")
+  is10b5_1             Boolean  @default(false)
+  isOptionExercise     Boolean  @default(false)
+  isOpenMarketPurchase Boolean  @default(false)
+  ownershipAfter       Float?
+  signalScore          Int?
+  signalLabel          String?
+  aiInterpretation     String?
+  isDemoData           Boolean  @default(true)
+  rawPayload           Json?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+}
+
+model Fund {
+  id          String   @id @default(cuid())
+  name        String
+  managerName String?
+  cik         String?  @unique
+  aum         Float?
+  isDemoData  Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  filings InstitutionalFiling[]
+}
+
+model InstitutionalFiling {
+  id           String   @id @default(cuid())
+  fundId       String
+  fund         Fund     @relation(fields: [fundId], references: [id])
+  filingPeriod String
+  filingDate   DateTime
+  isDemoData   Boolean  @default(true)
+  createdAt    DateTime @default(now())
+
+  holdings InstitutionalHolding[]
+}
+
+model InstitutionalHolding {
+  id               String              @id @default(cuid())
+  filingId         String
+  filing           InstitutionalFiling @relation(fields: [filingId], references: [id])
+  assetId          String?
+  asset            Asset?              @relation(fields: [assetId], references: [id])
+  ticker           String
+  companyName      String?
+  shares           Float?
+  marketValue      Float?
+  portfolioWeight  Float?
+  changeInShares   Float?
+  changePercent    Float?
+  actionType       String?
+  sourceUrl        String?
+  sourceName       String   @default("SEC 13F")
+  signalScore      Int?
+  aiInterpretation String?
+  isDemoData       Boolean  @default(true)
+  createdAt        DateTime @default(now())
+}
+
+model SocialMention {
+  id              String   @id @default(cuid())
+  platform        String
+  assetId         String?
+  asset           Asset?   @relation(fields: [assetId], references: [id])
+  ticker          String?
+  textSnippet     String
+  sentimentScore  Float?
+  influenceScore  Float?
+  engagementScore Float?
+  viralityScore   Float?
+  isRumor         Boolean  @default(false)
+  isDemoData      Boolean  @default(true)
+  collectedAt     DateTime @default(now())
+  createdAt       DateTime @default(now())
+}
+
+model SocialSentimentSnapshot {
+  id             String   @id @default(cuid())
+  ticker         String
+  sentimentScore Float
+  mentionVolume  Int
+  bullishPct     Float?
+  bearishPct     Float?
+  neutralPct     Float?
+  velocityScore  Float?
+  hypeRiskScore  Float?
+  topTopics      Json?
+  isDemoData     Boolean  @default(true)
+  snapshotAt     DateTime @default(now())
+  createdAt      DateTime @default(now())
+
+  @@index([ticker, snapshotAt])
+}
+
+model AIInsight {
+  id          String    @id @default(cuid())
+  assetId     String?
+  asset       Asset?    @relation(fields: [assetId], references: [id])
+  ticker      String?
+  insightType String
+  summary     String
+  content     Json
+  confidence  String?
+  sources     Json?
+  disclaimer  String?
+  isDemoData  Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  expiresAt   DateTime?
+}
+
+model Newsletter {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  title       String
+  type        String
+  tone        String   @default("professional")
+  language    String   @default("en")
+  markdown    String?
+  htmlContent String?
+  isDemoData  Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  sections NewsletterSection[]
+}
+
+model NewsletterSection {
+  id           String     @id @default(cuid())
+  newsletterId String
+  newsletter   Newsletter @relation(fields: [newsletterId], references: [id])
+  heading      String
+  content      String
+  order        Int
+  sources      Json?
+  createdAt    DateTime   @default(now())
+}
+
+model Alert {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  type      String
+  ticker    String?
+  condition Json
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ApiKey {
+  id         String    @id @default(cuid())
+  userId     String
+  user       User      @relation(fields: [userId], references: [id])
+  name       String
+  keyHash    String    @unique
+  isActive   Boolean   @default(true)
+  createdAt  DateTime  @default(now())
+  lastUsedAt DateTime?
+}
+
+model Plan {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  price       Float
+  features    Json
+  createdAt   DateTime @default(now())
+
+  subscriptions Subscription[]
+}
+
+model Subscription {
+  id        String    @id @default(cuid())
+  userId    String    @unique
+  user      User      @relation(fields: [userId], references: [id])
+  planId    String
+  plan      Plan      @relation(fields: [planId], references: [id])
+  status    String    @default("active")
+  startedAt DateTime  @default(now())
+  expiresAt DateTime?
+}
