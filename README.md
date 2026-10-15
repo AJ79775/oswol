@@ -115,6 +115,17 @@ npx tsx cli/index.ts heatmap sectors
 npx tsx cli/index.ts assets list
 ```
 
+## Daily Brief video agent
+
+`video-agent/` turns each day's newsletter into a narrated, chaptered explainer video in the Oswol
+look, with no music, faces or stock footage. The script comes from FreeLLMAPI, every figure is
+checked against the newsletter, a fixed Kokoro voice narrates it, and the videos are published to
+`/var/www/oswol-videos` with a gallery. See [video-agent/README.md](video-agent/README.md).
+
+```bash
+cd video-agent && sudo ./install.sh --time 07:30 --tz Asia/Riyadh --nginx-snippet
+```
+
 ## Architecture
 
 ```

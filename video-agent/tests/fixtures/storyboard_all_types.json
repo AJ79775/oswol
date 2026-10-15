@@ -1,0 +1,31 @@
+{
+  "title": "Renderer test: every scene type",
+  "date": "2026-10-15",
+  "regime": "RISK-ON",
+  "summary": "Fixture used only to exercise the renderer.",
+  "scenes": [
+    {"type": "flow", "chapter": "Why it moved", "title": "Why chips led the market",
+     "narration": "Here is the chain behind the move. It started with Nvidia's first-quarter beat. That beat reinforced confidence in AI infrastructure spending. Confidence spilled over to related chip names like AMD and Broadcom. The result was a tech-led rally, with the Nasdaq-100 ETF up 1.12%. One risk to watch: rates remain elevated.",
+     "nodes": [
+       {"id": "a", "label": "Nvidia Q1 beat", "kind": "cause", "detail": "Results above expectations"},
+       {"id": "b", "label": "AI capex confidence", "kind": "mechanism", "detail": "Spending cycle looks durable"},
+       {"id": "c", "label": "Spillover to chips", "kind": "mechanism", "detail": "AMD, Broadcom follow"},
+       {"id": "d", "label": "Tech-led rally", "kind": "effect", "detail": "QQQ +1.12%"},
+       {"id": "e", "label": "Rates elevated", "kind": "risk", "detail": "Headwind for growth"}
+     ],
+     "edges": [
+       {"from": "a", "to": "b", "label": "SIGNALS"}, {"from": "b", "to": "c", "label": "LIFTS PEERS"},
+       {"from": "c", "to": "d", "label": "DRIVES"}, {"from": "e", "to": "d", "label": "LIMITS"}
+     ]},
+    {"type": "disclosures", "chapter": "Smart Money", "title": "Who disclosed trades",
+     "narration": "Public filings show 7 Congressional purchases of Nvidia in the last 30 days. AMD's chief executive, Lisa Su, bought shares on the open market. Remember that these filings are delayed by 30 to 45 days.",
+     "disclosures": [
+       {"who": "Congressional filers", "role": "Members of Congress", "action": "Bought", "asset": "NVDA", "size": "7 purchases", "delay_days": 30},
+       {"who": "Lisa Su", "role": "AMD CEO", "action": "Bought", "asset": "AMD", "size": "Open market"}
+     ],
+     "warning": "STOCK Act filings carry 30–45 day delay — these transactions may not reflect current positions."},
+    {"type": "stat", "chapter": "Macro Watch", "title": "The number to watch",
+     "narration": "The 10-year Treasury yield sits at 4.28%. Higher yields make future earnings worth less today, which tends to weigh on growth stocks.",
+     "stat": {"value": "4.28%", "label": "10-year Treasury yield", "context": "Higher yields can weigh on growth-stock valuations."}}
+  ]
+}

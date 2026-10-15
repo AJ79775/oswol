@@ -1,0 +1,11 @@
+[Unit]
+Description=Daily Oswol Daily Brief video
+
+[Timer]
+# install.sh rewrites this line from --time / --tz (systemd accepts a timezone suffix).
+OnCalendar=*-*-* 07:30:00
+Persistent=true
+AccuracySec=1min
+
+[Install]
+WantedBy=timers.target

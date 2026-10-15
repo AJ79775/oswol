@@ -1,0 +1,72 @@
+{% extends "_base.html" %}
+{% block title %}{{ v.title }} · Oswol Daily Brief{% endblock %}
+{% block desc %}{{ v.summary }}{% endblock %}
+{% block style %}
+.page { display: grid; grid-template-columns: 1.7fr 1fr; gap: 28px; margin: 32px 0; align-items: start; }
+h1 { font-size: 28px; line-height: 1.2; margin: 18px 0 10px; }
+.meta { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 18px; }
+.side { padding: 18px 18px 8px; }
+.ch { display: flex; gap: 14px; width: 100%; text-align: left; padding: 10px 0; border: 0; border-top: 1px solid var(--line);
+  background: none; color: var(--ink-hi); font: 15px "Geist", sans-serif; cursor: pointer; }
+.ch:first-of-type { border-top: 0; }
+.ch .t { color: var(--champagne); min-width: 44px; }
+.ch:hover { color: var(--champagne); }
+.ch.on { color: var(--champagne); }
+.dl { display: flex; flex-wrap: wrap; gap: 8px; margin: 18px 0; }
+.tr h3 { font-size: 15px; margin: 22px 0 6px; color: var(--champagne); font-family: "JetBrains Mono", monospace; font-weight: 500;
+  letter-spacing: .12em; text-transform: uppercase; }
+.tr p { color: var(--ink-md); margin: 0 0 8px; max-width: 72ch; }
+.nav { display: flex; justify-content: space-between; gap: 12px; margin-top: 28px; }
+@media (max-width: 860px) { .page { grid-template-columns: 1fr; } }
+{% endblock %}
+{% block body %}
+<div class="page">
+  <div>
+    <video id="player" controls preload="metadata" poster="{{ v.thumb_url }}" src="{{ v.video_url }}">
+      {% if v.vtt_url %}<track kind="captions" src="{{ v.vtt_url }}" srclang="en" label="English">{% endif %}
+    </video>
+    <div class="kick" style="margin-top:18px">{{ v.pretty_date }}</div>
+    <h1>{{ v.title }}</h1>
+    <div class="meta">
+      <span class="chip mono">{{ v.length }}</span>
+      {% if v.regime %}<span class="chip {{ {'RISK-ON':'up','RISK-OFF':'down','MIXED':'warn'}.get(v.regime|upper, '') }}">{{ v.regime }}</span>{% endif %}
+      {% if v.is_demo %}<span class="chip warn">Demo data</span>{% endif %}
+      <span class="chip">Script: {{ 'AI + fact-check' if v.generated_by == 'llm' else 'template' }}</span>
+    </div>
+    <p style="color:var(--ink-md)">{{ v.summary }}</p>
+    <div class="dl">
+      <a class="btn" href="{{ v.video_url }}" download>MP4</a>
+      {% if v.files.srt %}<a class="btn" href="{{ v.files.srt }}" download>Subtitles (SRT)</a>{% endif %}
+      {% if v.files.vtt %}<a class="btn" href="{{ v.files.vtt }}" download>Subtitles (VTT)</a>{% endif %}
+      {% if v.files.script %}<a class="btn" href="{{ v.files.script }}">Script</a>{% endif %}
+      {% if v.files.newsletter %}<a class="btn" href="{{ v.files.newsletter }}">Source newsletter</a>{% endif %}
+    </div>
+    <section class="tr">
+      {% for row in v.transcript %}<h3>{{ row.chapter }}</h3><p>{{ row.text }}</p>{% endfor %}
+    </section>
+  </div>
+  <aside class="card side">
+    <div class="kick" style="margin-bottom:6px">Chapters</div>
+    {% for c in v.chapters %}
+    <button class="ch" data-t="{{ c.start }}"><span class="t mono">{{ '%d:%02d' % ((c.start // 60)|int, (c.start % 60)|int) }}</span><span>{{ c.title }}</span></button>
+    {% endfor %}
+  </aside>
+</div>
+{% set idx = namespace(i=0) %}{% for x in videos %}{% if x.date == v.date %}{% set idx.i = loop.index0 %}{% endif %}{% endfor %}
+<div class="nav">
+  {% if idx.i + 1 < videos|length %}<a class="btn" href="{{ videos[idx.i + 1].page }}">← {{ videos[idx.i + 1].pretty_date }}</a>{% else %}<span></span>{% endif %}
+  <a class="btn" href="{{ base }}/">All briefs</a>
+  {% if idx.i > 0 %}<a class="btn" href="{{ videos[idx.i - 1].page }}">{{ videos[idx.i - 1].pretty_date }} →</a>{% else %}<span></span>{% endif %}
+</div>
+{% endblock %}
+{% block script %}
+<script>
+  const player = document.getElementById("player");
+  const chs = Array.from(document.querySelectorAll(".ch"));
+  chs.forEach((b) => b.addEventListener("click", () => { player.currentTime = parseFloat(b.dataset.t); player.play(); }));
+  player.addEventListener("timeupdate", () => {
+    let on = 0; chs.forEach((b, i) => { if (player.currentTime >= parseFloat(b.dataset.t)) on = i; });
+    chs.forEach((b, i) => b.classList.toggle("on", i === on));
+  });
+</script>
+{% endblock %}
