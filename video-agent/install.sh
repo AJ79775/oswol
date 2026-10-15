@@ -60,6 +60,34 @@ fi
 chown root:oswol-video "$ETC/env"; chmod 640 "$ETC/env"
 chmod -R a+rX "$APP"
 
+say "oswol-video command"
+mkdir -p "$VAR/inbox" && chown oswol-video:oswol-video "$VAR/inbox"
+cat > /usr/local/bin/oswol-video <<'WRAP'
+#!/usr/bin/env bash
+# Run the Oswol video agent as its service user, for example:
+#   oswol-video doctor
+#   oswol-video run --file ~/oswol-2026-10-14.md --date 2026-10-14 --force
+[ "$(id -u)" -eq 0 ] || exec sudo "$0" "$@"
+INBOX=/var/lib/oswol-video/inbox
+args=()
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --file|--storyboard)
+      src="$2"
+      if [ -f "$src" ]; then  # copy so the service user can read it (files in /root are private)
+        dst="$INBOX/$(basename "$src")"
+        [ "$(realpath "$src")" = "$(realpath -m "$dst")" ] || install -m 644 -o oswol-video -g oswol-video "$src" "$dst"
+        src="$dst"
+      fi
+      args+=("$1" "$src"); shift 2 ;;
+    *) args+=("$1"); shift ;;
+  esac
+done
+cd /opt/oswol-video/app && exec runuser -u oswol-video -- env PLAYWRIGHT_BROWSERS_PATH=/opt/oswol-video/browsers \
+  /opt/oswol-video/venv/bin/python -m oswol_video "${args[@]}"
+WRAP
+chmod 755 /usr/local/bin/oswol-video
+
 say "Daily schedule (systemd timer)"
 install -m 644 "$APP/app/deploy/systemd/oswol-video.service" /etc/systemd/system/oswol-video.service
 CAL="*-*-* ${RUN_TIME}:00${RUN_TZ:+ $RUN_TZ}"
@@ -88,15 +116,17 @@ fi
 
 say "Self-check"
 # The app reads /etc/oswol-video/env itself; just run it as the service user from the app folder.
-as_service() { (cd "$APP/app" && runuser -u oswol-video -- env PLAYWRIGHT_BROWSERS_PATH="$APP/browsers" "$APP/venv/bin/python" -m oswol_video "$@"); }
-as_service doctor || echo "  (fix the ✘ items in $ETC/env, then re-run: sudo ./install.sh)"
-as_service gallery >/dev/null || true
+/usr/local/bin/oswol-video doctor || echo "  (fix the ✘ items in $ETC/env, then run: oswol-video doctor)"
+/usr/local/bin/oswol-video gallery >/dev/null || true
 
 cat <<EOF
 
 Done.
   Edit settings ........ sudo nano $ETC/env
-  Make a video now ..... sudo systemctl start oswol-video && journalctl -u oswol-video -f
+  Check everything ..... oswol-video doctor
+  Make a video now ..... oswol-video run            (or: sudo systemctl start oswol-video)
+  From a saved issue ... oswol-video run --file ~/oswol-2026-10-14.md --date 2026-10-14 --force
+  Logs of daily runs ... journalctl -u oswol-video -f
   Next scheduled run ... systemctl list-timers oswol-video.timer
   Videos ............... $WWW   (gallery: index.html, newest: latest.mp4)
 EOF

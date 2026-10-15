@@ -18,6 +18,10 @@ for candidate in (Path("/etc/oswol-video/env"), PROJECT_DIR / ".env"):
     if candidate.is_file():
         load_dotenv(candidate, override=False)
 
+# install.sh puts Chromium here; the systemd unit sets this too, but manual runs should just work.
+if not os.environ.get("PLAYWRIGHT_BROWSERS_PATH") and Path("/opt/oswol-video/browsers").is_dir():
+    os.environ["PLAYWRIGHT_BROWSERS_PATH"] = "/opt/oswol-video/browsers"
+
 
 def _env(name: str, default: str = "") -> str:
     return os.environ.get(name, default).strip()
@@ -67,6 +71,8 @@ class Settings:
     imap_from: str = field(default_factory=lambda: _env("NEWSLETTER_IMAP_FROM"))
     imap_folder: str = field(default_factory=lambda: _env("NEWSLETTER_IMAP_FOLDER", "INBOX"))
     require_today: bool = field(default_factory=lambda: _bool("NEWSLETTER_REQUIRE_TODAY", False))
+    # Force the issue date (YYYY-MM-DD), e.g. when making a video for an older newsletter.
+    date_override: str = field(default_factory=lambda: _env("BRIEF_DATE"))
 
     # --- LLM (FreeLLMAPI, optionally fronted by Switchyard) ------------------
     llm_base_url: str = field(default_factory=lambda: _env("LLM_BASE_URL", "http://127.0.0.1:3001/v1"))

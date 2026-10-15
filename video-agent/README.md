@@ -87,14 +87,22 @@ Basic-auth lines are in both nginx files if the library should stay private.
 
 ## Everyday commands
 
+`install.sh` adds an `oswol-video` command that runs as the service user (run it as root or with sudo):
+
 ```bash
-cd /opt/oswol-video/app
-sudo -u oswol-video ../venv/bin/python -m oswol_video doctor            # check LLM, voice, Chromium, storage, source
-sudo -u oswol-video ../venv/bin/python -m oswol_video run --force       # rebuild today's video
-sudo -u oswol-video ../venv/bin/python -m oswol_video run --file /path/newsletter.md   # from a file
-sudo -u oswol-video ../venv/bin/python -m oswol_video preview           # one PNG per scene, no video (fast review)
-sudo -u oswol-video ../venv/bin/python -m oswol_video voices --sample /tmp/voice.wav --voice am_michael
+oswol-video doctor                                   # check LLM, voice, Chromium, storage, source
+oswol-video run                                      # make today's video now
+oswol-video run --force                              # rebuild today's video
+oswol-video run --file ~/oswol-2026-10-14.md --date 2026-10-14 --force   # a saved issue (any older date)
+oswol-video run --file ~/issue.md --storyboard ~/script.json             # render a hand-edited script (still fact-checked)
+oswol-video preview --file ~/issue.md                # one PNG per scene, no video (fast review)
+oswol-video voices --sample /tmp/voice.wav --voice am_michael
 ```
+
+`--file` accepts the newsletter as plain text pasted from the email (ALL-CAPS section labels such as
+EARNINGS or QUICK HITS are recognised), Markdown, HTML or JSON. The issue date comes from `--date`,
+then a date in the file name, then a date in the text, and otherwise today. The live crypto/FX
+snapshot is only added for today's issue.
 
 ## Choosing the newsletter source
 

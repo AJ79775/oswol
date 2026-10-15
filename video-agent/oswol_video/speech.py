@@ -33,7 +33,9 @@ ACRONYMS = {
     "GCC": "G C C", "US": "U S", "U.S.": "U S", "UK": "U K", "EU": "E U", "EV": "E V", "EVs": "E Vs", "M&A": "M and A",
     "ET": "Eastern", "GST": "Gulf time", "UTC": "U T C", "ATH": "all-time high", "HBM": "H B M", "API": "A P I",
     "GLP-1": "G L P one", "AMD": "A M D", "XRP": "X R P", "TSMC": "T S M C", "ASML": "A S M L",
-    "JPMorgan": "J P Morgan", "VIX": "vix",
+    "JPMorgan": "J P Morgan", "VIX": "vix", "GAAP": "gap", "BofA": "Bank of America", "UAE": "U A E",
+    "IEA": "I E A", "BBVA": "B B V A", "BNP": "B N P", "ING": "I N G", "MiCA": "Mica", "AUM": "A U M",
+    "IPOs": "I P Os", "ETFs": "E T Fs", "CEOs": "C E Os", "NII": "net interest income",
 }
 
 _ORD = {"1": "first", "2": "second", "3": "third", "4": "fourth"}
@@ -63,10 +65,12 @@ def to_speech(text: str) -> str:
     t = t.replace("S&P", "S and P").replace("&", " and ")
     t = re.sub(r"Nasdaq-100", "Nasdaq 100", t)
     # $1–5M -> 1 to 5 million dollars ; $67,420 -> 67,420 dollars ; $2.1B -> 2.1 billion dollars
-    t = re.sub(r"\$(\d[\d,.]*)\s*[–-]\s*\$?(\d[\d,.]*)\s*([KMBT])\b",
+    num = r"(\d{1,3}(?:,\d{3})+(?:\.\d+)?|\d+(?:\.\d+)?)"  # 1,234.56 — never swallows trailing punctuation
+    t = re.sub(rf"\${num}\s*[–-]\s*\$?{num}\s*([KMBT])\b",
                lambda m: f"{m.group(1)} to {m.group(2)} {_scale(m.group(3))} dollars", t)
-    t = re.sub(r"\$(\d[\d,.]*)\s*([KMBT]|bn|mn)\b", lambda m: f"{m.group(1)} {_scale(m.group(2))} dollars", t)
-    t = re.sub(r"\$(\d[\d,.]*)", r"\1 dollars", t)
+    t = re.sub(rf"\${num}\s*([KMBT]|bn|mn)\b", lambda m: f"{m.group(1)} {_scale(m.group(2))} dollars", t)
+    t = re.sub(rf"\${num}\s+(thousand|million|billion|trillion)\b", r"\1 \2 dollars", t, flags=re.I)
+    t = re.sub(rf"\${num}", r"\1 dollars", t)
     t = re.sub(r"(\d[\d.]*)k\b", r"\1 thousand", t)
     # +4.21% / −2.36% -> up/down x percent ; 4.21% -> 4.21 percent
     t = re.sub(r"(?<![\w.])([+\-−–])(\d[\d,]*(?:\.\d+)?)\s*%", _signed_pct, t)

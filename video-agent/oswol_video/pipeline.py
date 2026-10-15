@@ -90,7 +90,7 @@ def notify(settings: Settings, payload: dict) -> None:
 
 
 def run(settings: Settings, *, force: bool = False, wait_minutes: int = 0, newsletter: Newsletter | None = None,
-        keep_intermediate: bool = False) -> dict:
+        keep_intermediate: bool = False, storyboard_file: str | None = None) -> dict:
     t_start = time.time()
     with run_lock(settings):
         nl = newsletter or get_newsletter(settings, wait_minutes)
@@ -104,13 +104,19 @@ def run(settings: Settings, *, force: bool = False, wait_minutes: int = 0, newsl
 
         memory = Memory(settings)
         context = memory.context_for(nl)
-        snap = enrich.snapshot(nl, settings) if settings.enrich_live_data else enrich.Snapshot()
+        # A live snapshot only makes sense on the day of the issue (not when re-making an older video).
+        live_ok = settings.enrich_live_data and nl.date == today(settings).isoformat()
+        snap = enrich.snapshot(nl, settings) if live_ok else enrich.Snapshot()
         if snap.tiles:
             log.info("Live snapshot: %d tiles from %s", len(snap.tiles), ", ".join(snap.sources))
 
         # 1. Storyboard (FreeLLMAPI, fact-checked; deterministic fallback)
         board_path = work / "storyboard.json"
-        if board_path.is_file() and not force:
+        if storyboard_file:
+            board = storyboard.from_external(nl, json.loads(Path(storyboard_file).read_text(encoding="utf-8")),
+                                             memory=context, live=snap.as_prompt(), live_values=snap.values())
+            board_path.write_text(board.model_dump_json(indent=2, by_alias=True), encoding="utf-8")
+        elif board_path.is_file() and not force:
             board = Storyboard.model_validate_json(board_path.read_text())
         else:
             board = storyboard.generate(nl, settings, memory=context, live=snap.as_prompt(), live_values=snap.values())

@@ -36,6 +36,8 @@ def _settings(args):
         s.target_minutes = args.minutes
     if getattr(args, "file", None):
         s.source, s.source_file = "file", args.file
+    if getattr(args, "date", None):
+        s.date_override = args.date
     return s
 
 
@@ -44,7 +46,8 @@ def cmd_run(args) -> int:
 
     s = _settings(args)
     s.ensure_dirs()
-    result = pipeline.run(s, force=args.force, wait_minutes=args.wait, keep_intermediate=args.keep)
+    result = pipeline.run(s, force=args.force, wait_minutes=args.wait, keep_intermediate=args.keep,
+                          storyboard_file=args.storyboard)
     print(json.dumps({k: result.get(k) for k in ("date", "title", "duration", "url", "video_url")}, indent=2))
     return 0
 
@@ -165,10 +168,13 @@ def main(argv: list[str] | None = None) -> int:
     r.add_argument("--no-llm", action="store_true", help="skip the LLM and use the template script")
     r.add_argument("--minutes", type=float, help="target length in minutes")
     r.add_argument("--file", help="use a local newsletter file (.json/.md/.html/.txt)")
+    r.add_argument("--date", help="issue date YYYY-MM-DD (default: from the file name or text, else today)")
+    r.add_argument("--storyboard", help="render this storyboard JSON instead of asking the LLM (still fact-checked)")
     p = sub.add_parser("preview", help="render one still per scene")
     p.add_argument("--out")
     p.add_argument("--no-llm", action="store_true")
     p.add_argument("--file")
+    p.add_argument("--date")
     sub.add_parser("gallery", help="rebuild gallery and feeds")
     sub.add_parser("doctor", help="check dependencies and services")
     v = sub.add_parser("voices", help="list voices or write a sample")

@@ -22,7 +22,7 @@ def _words(text: str) -> list[str]:
 
 def _keywords_for(group: str, item) -> list[str]:
     if group == "tiles":
-        return [item.label.lower(), *(_words(COMPANY_NAMES.get(item.label, "")))]
+        return [item.label.lower(), *_words(item.label), *_words(COMPANY_NAMES.get(item.label, ""))]
     if group in {"gainers", "losers"}:
         return [item.symbol.lower(), *(_words(item.name or COMPANY_NAMES.get(item.symbol, "")))]
     if group == "nodes":
@@ -131,12 +131,14 @@ def frame_counts(timings: list[SceneTiming], fps: int) -> list[int]:
 def build_story(board: Storyboard, timings: list[SceneTiming], nl: Newsletter, settings) -> dict:
     fps = settings.fps
     counts = frame_counts(timings, fps)
-    scenes, start, number = [], 0.0, 0
+    scenes, start, number, last_chapter = [], 0.0, 0, None
     for scene, timing, n in zip(board.scenes, timings, counts):
         duration = n / fps
         speech_end = timing.cues[-1].end if timing.cues else duration - 1.0
-        if scene.type not in {"cold_open", "agenda", "recap", "outro", "caution"}:
+        numbered = scene.type not in {"cold_open", "agenda", "recap", "outro", "caution"}
+        if numbered and scene.chapter != last_chapter:  # one number per chapter, not per scene
             number += 1
+            last_chapter = scene.chapter
         groups = {}
         for g in ("tiles", "gainers", "losers", "nodes", "bullets", "events", "narratives", "disclosures"):
             items = getattr(scene, g)
@@ -148,7 +150,7 @@ def build_story(board: Storyboard, timings: list[SceneTiming], nl: Newsletter, s
             groups["losers"] = [max(v, floor + 0.12 * i) for i, v in enumerate(groups["losers"])]
         scenes.append({
             "index": timing.index, "type": scene.type, "start": round(start, 4), "duration": round(duration, 4),
-            "frames": n, "number": f"{number:02d}" if number else "", "chapter": scene.chapter,
+            "frames": n, "number": f"{number:02d}" if numbered and number else "", "chapter": scene.chapter,
             "speechEnd": round(speech_end, 3), "data": _scene_data(scene), "reveals": groups,
             "warnAt": _warn_time(scene, timing.cues, speech_end), "captions": caption_chunks(timing.cues),
         })

@@ -158,6 +158,21 @@ def allowed_integers(nl: Newsletter) -> set[int]:
         return set()
 
 
+def from_external(nl: Newsletter, data: dict, memory: str = "", live: str = "",
+                  live_values: list[float] | None = None, source: str = "external") -> Storyboard:
+    """A storyboard written elsewhere (a person, another model): same safety rails as the LLM path."""
+    index = factcheck.NumberIndex(nl.full_text(), memory, live, extra_values=live_values)
+    allowed = allowed_integers(nl)
+    board = parse_storyboard(data, nl)
+    issues = factcheck.find_unsupported_numbers(board, index, allowed) + factcheck.find_forbidden(board)
+    for i in issues:
+        log.warning("Fact-check: scene %d %s '%s' is not supported by the newsletter; removing", i.scene, i.field, i.value)
+    board = finalize(board, nl)
+    board, _ = factcheck.sanitize(board, index, allowed)
+    board.generated_by, board.model = source, str(data.get("model") or source)
+    return board
+
+
 # ---------------------------------------------------------------------------
 # LLM path
 # ---------------------------------------------------------------------------

@@ -31,7 +31,7 @@ h1 { font-size: 28px; line-height: 1.2; margin: 18px 0 10px; }
       <span class="chip mono">{{ v.length }}</span>
       {% if v.regime %}<span class="chip {{ {'RISK-ON':'up','RISK-OFF':'down','MIXED':'warn'}.get(v.regime|upper, '') }}">{{ v.regime }}</span>{% endif %}
       {% if v.is_demo %}<span class="chip warn">Demo data</span>{% endif %}
-      <span class="chip">Script: {{ 'AI + fact-check' if v.generated_by == 'llm' else 'template' }}</span>
+      <span class="chip">Script: {{ {'llm': 'AI + fact-check', 'external': 'reviewed + fact-check'}.get(v.generated_by, 'template') }}</span>
     </div>
     <p style="color:var(--ink-md)">{{ v.summary }}</p>
     <div class="dl">

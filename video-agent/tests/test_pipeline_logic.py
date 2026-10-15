@@ -163,3 +163,56 @@ def test_captions_are_chunked():
     chunks = timeline.caption_chunks([long])
     assert len(chunks) >= 3 and all(len(c["text"]) <= timeline.CAPTION_CHARS + 12 for c in chunks)
     assert chunks[-1]["end"] == pytest.approx(10, abs=0.01)
+
+
+# ---------------------------------------------------------------- Oswol plain-text email layout
+
+PLAIN = """Banks Split on Q3, Chips Rally
+Good morning! Earnings diverged today.
+IN THIS ISSUE
+• Bank A beats on trading.
+• Bank B misses after a $1.2 billion fine.
+EARNINGS
+Bank A Tops Estimates on $909 Million Trading Beat
+Strong trading lifted results.
+Bank A posted EPS of $3.03, beating by $0.11.
+Why it matters: Trading desks profit when markets move.
+What to watch: Fourth-quarter dealmaking.
+Sources: Bank A tops estimates
+QUICK HITS
+
+↗ Bitcoin holds above $83,000.
+↗ Diesel crunch may last into 2027.
+THE BOTTOM LINE
+Scale is creating clear winners.
+Until tomorrow, keep your eye on the numbers
+"""
+
+
+def test_plain_oswol_layout_is_sectioned(tmp_path):
+    f = tmp_path / "oswol-2026-10-14.md"
+    f.write_text(PLAIN)
+    from oswol_video.sources import fetch_file
+
+    nl = fetch_file(load_settings(source="file", source_file=str(f)))
+    assert nl.title == "Banks Split on Q3, Chips Rally" and nl.date == "2026-10-14"
+    ids = [s.id for s in nl.sections]
+    assert ids == ["in-this-issue", "earnings-1", "quick-hits", "the-bottom-line"]
+    story = nl.sections[1]
+    assert story.title.startswith("Bank A Tops Estimates") and "Why it matters:" in story.content
+    assert nl.sections[2].content.splitlines() == ["Bitcoin holds above $83,000.", "Diesel crunch may last into 2027."]
+    assert "Until tomorrow" not in nl.sections[3].content
+
+
+def test_dates_from_text_and_override():
+    from oswol_video.sources import find_date, fetch_newsletter
+
+    assert find_date("Daily brief\nWednesday, October 14, 2026\nHello") == "2026-10-14"
+    assert find_date("14 Oct 2026 edition") == "2026-10-14"
+    assert find_date("no date here") is None
+
+
+def test_dollar_amounts_are_spoken_naturally():
+    out = to_speech("EPS of $3.03, beating by $0.11. Revenue hit $20.34 billion, after touching $84,000, and a $1.2B fine.")
+    assert "3.03 dollars, beating by 0.11 dollars." in out
+    assert "20.34 billion dollars" in out and "84,000 dollars," in out and "1.2 billion dollars fine" in out

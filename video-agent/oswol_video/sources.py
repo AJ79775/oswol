@@ -97,7 +97,80 @@ def from_json(data: dict, settings: Settings, source_url: str = "") -> Newslette
     )
 
 
+_MONTHS = ("January|February|March|April|May|June|July|August|September|October|November|December|"
+           "Jan|Feb|Mar|Apr|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec")
+_BULLET = re.compile(r"^\s*[•↗▪◦·*\-–]\s+")
+_SIGNOFF = re.compile(r"^(until tomorrow|see you|thanks for reading|unsubscribe|view in browser|forward this)", re.I)
+
+
+def find_date(text: str) -> str | None:
+    """A date written near the top of a newsletter: 2026-10-14, October 14, 2026, 14 Oct 2026 …"""
+    head = "\n".join(text.splitlines()[:25])
+    m = re.search(r"\b(20\d\d)-(\d\d)-(\d\d)\b", head)
+    if m:
+        return m.group(0)
+    for pat, fmt in ((rf"\b({_MONTHS})\.?\s+(\d{{1,2}}),?\s+(20\d\d)\b", "{0} {1} {2}"),
+                     (rf"\b(\d{{1,2}})\s+({_MONTHS})\.?,?\s+(20\d\d)\b", "{1} {0} {2}")):
+        m = re.search(pat, head)
+        if m:
+            text_date = fmt.format(*m.groups()).replace("Sept", "Sep")
+            for f in ("%B %d %Y", "%b %d %Y"):
+                try:
+                    return datetime.strptime(text_date, f).date().isoformat()
+                except ValueError:
+                    continue
+    return None
+
+
+def _is_label(line: str) -> bool:
+    """ALL-CAPS section labels such as 'EARNINGS', 'QUICK HITS', 'THE BOTTOM LINE'."""
+    s = line.strip()
+    letters = [c for c in s if c.isalpha()]
+    return (3 <= len(s) <= 40 and len(letters) >= 3 and all(c.isupper() for c in letters)
+            and not s.endswith((".", ":", "!", "?")) and len(s.split()) <= 5 and not _BULLET.match(s))
+
+
+def from_plain_newsletter(text: str, settings: Settings, source_url: str = "", date_hint: Any = None) -> Newsletter | None:
+    """The Oswol email layout: title, intro, then ALL-CAPS section labels with story blocks or bullets."""
+    lines = [l.strip() for l in text.splitlines() if l.strip()]
+    labels = [i for i, l in enumerate(lines) if _is_label(l)]
+    if len(lines) < 4 or len(labels) < 2:
+        return None
+    title, intro = lines[0], " ".join(lines[1:labels[0]])
+    sections: list[Section] = []
+    counts: dict[str, int] = {}
+    for n, start in enumerate(labels):
+        label = lines[start]
+        block = [l for l in lines[start + 1: labels[n + 1] if n + 1 < len(labels) else len(lines)]
+                 if not _SIGNOFF.match(l)]
+        if not block:
+            continue
+        slug = re.sub(r"[^a-z0-9]+", "-", label.lower()).strip("-")
+        counts[slug] = counts.get(slug, 0) + 1
+        sid = f"{slug}-{counts[slug]}" if counts[slug] > 1 or slug not in {"in-this-issue", "markets", "quick-hits", "the-bottom-line"} else slug
+        bullets = [_BULLET.sub("", l) for l in block if _BULLET.match(l)]
+        if bullets and len(bullets) >= len(block) - 1:
+            sections.append(Section(id=sid, title=label.title(), content="\n".join(bullets)))
+            continue
+        looks_like_story = len(block) >= 3 and not block[0].endswith(".") and len(block[0]) <= 160
+        if looks_like_story:
+            headline, rest = block[0], block[1:]
+            body = [l for l in rest if not re.match(r"^(why it matters|what to watch|sources?):", l, re.I)]
+            extras = [l for l in rest if re.match(r"^(why it matters|what to watch|sources?):", l, re.I)]
+            content = "\n".join(body + extras)
+            sections.append(Section(id=sid, title=headline, content=f"[{label.title()}]\n{content}"))
+        else:
+            sections.append(Section(id=sid, title=label.title(), content=" ".join(block)))
+    return Newsletter(title=title, date=parse_date(date_hint or find_date(text), today(settings)), summary=intro,
+                      sections=sections, source_url=source_url, raw_text=text[:20000])
+
+
 def from_markdown(md: str, settings: Settings, source_url: str = "", date_hint: Any = None) -> Newsletter:
+    if not re.search(r"^#{1,3}\s", md, flags=re.M):
+        plain = from_plain_newsletter(md, settings, source_url, date_hint)
+        if plain is not None:
+            return plain
+    date_hint = date_hint or find_date(md)
     title, summary_lines, sections = "", [], []
     current: dict | None = None
     for line in md.splitlines():
@@ -219,10 +292,15 @@ def fetch_file(settings: Settings) -> Newsletter:
     path = Path(settings.source_file)
     text = path.read_text(encoding="utf-8")
     if path.suffix.lower() == ".json":
-        return from_json(json.loads(text), settings, str(path))
-    if path.suffix.lower() in {".html", ".htm"}:
-        return from_html(text, settings, str(path))
-    return from_markdown(text, settings, str(path))
+        nl = from_json(json.loads(text), settings, str(path))
+    elif path.suffix.lower() in {".html", ".htm"}:
+        nl = from_html(text, settings, str(path))
+    else:
+        nl = from_markdown(text, settings, str(path))
+    m = re.search(r"(20\d\d)-(\d\d)-(\d\d)", path.name)
+    if m:  # a dated filename (oswol-2026-10-14.md) is the most reliable date there is
+        nl.date = m.group(0)
+    return nl
 
 
 def fetch_imap(settings: Settings) -> Newsletter:
@@ -268,6 +346,8 @@ def fetch_newsletter(settings: Settings) -> Newsletter:
     except KeyError as exc:
         raise ValueError(f"Unknown NEWSLETTER_SOURCE '{settings.source}'. Use one of: {', '.join(ADAPTERS)}") from exc
     nl = adapter(settings)
+    if settings.date_override:
+        nl.date = parse_date(settings.date_override, today(settings))
     if not nl.sections and not nl.summary:
         raise RuntimeError("Newsletter fetched but no readable content was found")
     log.info("Fetched newsletter '%s' (%s) with %d sections", nl.title, nl.date, len(nl.sections))
