@@ -104,6 +104,12 @@ EARNINGS or QUICK HITS are recognised), Markdown, HTML or JSON. The issue date c
 then a date in the file name, then a date in the text, and otherwise today. The live crypto/FX
 snapshot is only added for today's issue.
 
+## The FreeLLMAPI prompt
+
+The script prompt lives in `oswol_video/prompts/` (an editable system prompt plus a worked example).
+[docs/FREELLMAPI_PROMPT.md](docs/FREELLMAPI_PROMPT.md) explains what the model decides and what the
+renderer decides, and how to test it in seconds with `oswol-video script`.
+
 ## Choosing the newsletter source
 
 The default posts to the Oswol app (`/api/ai/newsletter`, the same shape as `mcp/newsletter_server.py`).

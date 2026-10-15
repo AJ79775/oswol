@@ -3,68 +3,38 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 import re
 from datetime import date
+from pathlib import Path
 
 from pydantic import ValidationError
 
 from . import factcheck
 from .config import Settings
 from .llm import LLMClient, extract_json
-from .models import CalEvent, Mover, Narrative, Newsletter, Scene, Storyboard, Tile
+from .models import CalEvent, Mover, Narrative, Newsletter, Scene, Stat, Storyboard, Tile
 from .speech import COMPANY_NAMES, split_sentences
 
 log = logging.getLogger(__name__)
 
-SYSTEM_PROMPT = """You are the producer and narrator-writer of "Oswol Daily Brief", a daily explainer video \
-made from the Oswol market newsletter. Oswol is an AI market-intelligence terminal: "Calm intelligence for \
-the next generation of investors." It helps people understand what moved, why it moved, who is behind the \
-move, and whether the signal is real or noise. It is NOT a broker and never gives advice.
+PROMPT_DIR = Path(__file__).resolve().parent / "prompts"
 
-VOICE: calm, precise, warm, professional. Signal over noise. AI as a quiet host. Short spoken sentences \
-(8-22 words). Explain every piece of jargon the first time in plain words (e.g. "the VIX, Wall Street's \
-fear gauge"; "a 13F, the quarterly filing big funds must publish"). Someone new to markets must understand \
-it; an expert must not be bored. Use uncertainty language ("may suggest", "worth monitoring", "based on \
-the data available"). Never say buy, sell, invest now, guaranteed, or any recommendation.
 
-GROUNDING (critical): use ONLY facts, names and numbers that appear in the NEWSLETTER (or the LIVE DATA / \
-PREVIOUS BRIEFS blocks when provided, and say so when you use them). Never invent, round creatively, \
-compute new figures, or add outside knowledge. Copy numbers exactly as written. If something is unclear, \
-leave it out. Write numbers as digits ("4.21%"), not words.
+def load_system_prompt() -> str:
+    """The FreeLLMAPI system prompt: prompts/storyboard_system.md plus a worked example.
 
-NARRATION is spoken by a text-to-speech voice: write company and fund names in full in narration \
-("Nvidia", not "NVDA"); tickers are fine in on-screen fields. No emoji, no markdown, no stage directions.
-
-PACING (on-screen text must be readable while the voice speaks): on-screen labels <= 6 words, bullets <= 12 \
-words, titles <= 7 words. Each scene's narration is 2-6 sentences and should explain what the visual shows, \
-in the order it appears on screen. One idea per scene. Hook the viewer in the first two sentences.
-
-DIAGRAMS ("flow" scenes) follow these rules: 3-6 nodes, a clear left-to-right causal chain \
-(cause -> mechanism -> effect), at most 1-2 nodes of kind "risk", node labels <= 4 words, edge labels \
-<= 14 characters. If a list says it better than a diagram, use "bullets" instead. Narrate the nodes in order.
-
-SCENE TYPES and their fields (every scene also has: type, chapter, title, narration):
-- cold_open: headline (<= 12 words), subtitle (one-line why it matters), regime (RISK-ON|RISK-OFF|MIXED|NEUTRAL or null)
-- agenda: bullets = chapter names in order (3-6)
-- overview: tiles = [{label, value, change_pct (number, e.g. -0.42), note}] (2-6 tiles), regime, subtitle (one-line \
-plain-language takeaway shown as "AI READ"), bullets (0-4 very short signals, e.g. "Tech leading")
-- movers: gainers / losers = [{symbol, name, change_pct}] (max 5 each)
-- flow: nodes = [{id, label, kind: cause|mechanism|effect|risk|neutral, detail}], edges = [{from, to, label}]
-- bullets: bullets = 2-5 short points
-- disclosures: disclosures = [{who, role, action, asset, size, delay_days}], warning (filing delay note)
-- narratives: narratives = [{name, velocity (0-100), mentions, tone: bullish|bearish|neutral|mixed, hype_risk: low|med|high}], warning
-- calendar: events = [{when, event, detail, impact: high|med|low}], bullets (0-4 short backdrop facts shown beside)
-- stat: stat = {value, label, context} - one number that matters, with plain-language meaning
-- caution: warning = what the viewer should keep in mind (data delays, noise, uncertainty)
-- recap: bullets = exactly 3 takeaways
-- outro: narration = short sign-off that includes "This is not investment advice."
-
-STRUCTURE: cold_open, agenda, then the newsletter's content in its own order using the best-fitting scene \
-types (overview / movers / flow "why it moved" / disclosures / narratives / calendar / stat / bullets), a \
-caution scene if the newsletter has warnings, recap, outro. Aim for 9-14 scenes.
-
-Return ONLY a JSON object: {"title": str, "date": "YYYY-MM-DD", "regime": str|null, "summary": \
-"one-sentence summary for the video description", "scenes": [ ... ]}"""
+    Edit the files (or point PROMPT_FILE / PROMPT_EXAMPLE_FILE elsewhere) to tune the script without
+    touching code. PROMPT_EXAMPLE=0 drops the example for models with a small context window.
+    """
+    text = Path(os.environ.get("PROMPT_FILE") or PROMPT_DIR / "storyboard_system.md").read_text(encoding="utf-8")
+    example = Path(os.environ.get("PROMPT_EXAMPLE_FILE") or PROMPT_DIR / "example_storyboard.json")
+    if os.environ.get("PROMPT_EXAMPLE", "1") != "0" and example.is_file():
+        text += ("\n\n# 10. Example output for a DIFFERENT issue\n\n"
+                 "This abridged example (8 of its 14 scenes) shows the expected format, depth, tone and how the "
+                 "narration names every on-screen item. NEVER reuse its facts, names or numbers: today's storyboard "
+                 "must come only from today's newsletter.\n\n" + example.read_text(encoding="utf-8"))
+    return text
 
 
 def _user_prompt(nl: Newsletter, settings: Settings, memory: str, live: str) -> str:
@@ -185,11 +155,12 @@ def generate(nl: Newsletter, settings: Settings, memory: str = "", live: str = "
     if not settings.llm_enabled:
         return _fallback(nl, index, allowed)
     client = LLMClient(settings)
+    system = load_system_prompt()
     prompt = _user_prompt(nl, settings, memory, live)
     try:
         board = None
         for attempt in range(3):  # free models sometimes truncate or garble JSON: ask again
-            reply = client.chat(SYSTEM_PROMPT, prompt)
+            reply = client.chat(system, prompt)
             try:
                 board = parse_storyboard(extract_json(reply.text), nl)
                 break
@@ -209,7 +180,7 @@ def generate(nl: Newsletter, settings: Settings, memory: str = "", live: str = "
                       + listing + "\nReturn the full corrected storyboard JSON. Remove or replace each item with an "
                       "exact figure from the newsletter. Keep everything else.")
             try:
-                fixed = client.chat(SYSTEM_PROMPT, repair)
+                fixed = client.chat(system, repair)
                 board = parse_storyboard(extract_json(fixed.text), nl)
                 board.model = fixed.model + (f" via {fixed.routed_via}" if fixed.routed_via else "")
             except Exception as exc:  # noqa: BLE001
@@ -262,6 +233,24 @@ def _direction(v: float) -> str:
 def _first_words(text: str, n: int = 12) -> str:
     words = text.rstrip(".").split()
     return " ".join(words[:n]) + ("…" if len(words) > n else "")
+
+
+_TRAIL = {"and", "or", "the", "of", "to", "a", "an", "for", "with", "that", "during", "in", "on", "by", "as", "while", "amid"}
+
+
+def _clip(text: str, n: int = 11) -> str:
+    """Shorten to at most n words at a natural break (comma or clause), without a dangling ellipsis."""
+    words = text.strip().rstrip(".").split()
+    if len(words) <= n:
+        return " ".join(words)
+    head = " ".join(words[:n])
+    cut = max(head.rfind(", "), head.rfind("; "), head.rfind(" — "))
+    if cut > 0 and len(head[:cut].split()) >= 4:
+        return head[:cut]
+    kept = words[:n]
+    while kept and kept[-1].lower().strip(",;") in _TRAIL:
+        kept.pop()
+    return " ".join(kept).rstrip(",;")
 
 
 def _overview(sec, title: str) -> Scene:
@@ -394,7 +383,96 @@ def _takeaways(body: list[Scene], regime: str | None) -> tuple[list[str], list[s
     return shown, spoken
 
 
+# --- The Oswol email layout (stories tagged "[Category]" by sources.from_plain_newsletter) ---------------
+
+_CUT = re.compile(r"\s+(?:After|Driven by|Following|As|Amid|Despite|On|With|Ahead of)\s+", re.I)
+_FIGURE = re.compile(r"\$\d[\d,.]*\s*(?:Billion|Million|Trillion|[BMT])?\b|\d[\d.]*%", re.I)
+
+
+def _short_title(headline: str) -> str:
+    return _first_words(_CUT.split(headline, maxsplit=1)[0], 7).rstrip("…")
+
+
+def _subject(headline: str, issue_lines: list[str]) -> str:
+    acr = re.findall(r"\b[A-Z]{3,5}\b", headline)
+    if acr:
+        return acr[0]
+    head_words = {w.lower() for w in re.findall(r"[A-Za-z]+", headline) if len(w) > 3}
+    best = max(issue_lines, key=lambda l: len(head_words & {w.lower() for w in re.findall(r"[A-Za-z]+", l)}), default="")
+    m = re.match(r"((?:[A-Z][\w'’&.-]*|of|and)(?:\s+(?:[A-Z][\w'’&.-]*|of|and))*)", best)
+    name = (m.group(1) if m else "").strip()
+    name = re.sub(r"\s+(of|and)$", "", name)
+    return name if name and len(name.split()) <= 4 else _first_words(headline, 3).rstrip("…")
+
+
+def _story_scenes(sec, issue_lines: list[str]) -> list[Scene]:
+    lines = [l for l in sec.content.splitlines() if l.strip()]
+    lines = lines[1:] if lines and lines[0].startswith("[") else lines
+    def tagged(prefix):
+        return next((re.sub(rf"^{prefix}:\s*", "", l, flags=re.I) for l in lines if re.match(rf"^{prefix}:", l, re.I)), "")
+    why, watch = tagged("why it matters"), tagged("what to watch")
+    watch_item = re.sub(r"^(watch|keep an eye on|monitor|track)\s+", "", watch, flags=re.I)
+    body = [l for l in lines if not re.match(r"^(why it matters|what to watch|sources?):", l, re.I)]
+    dek = body[0] if body else ""
+    sentences = split_sentences(" ".join(body[1:]))
+    chapter, title = _subject(sec.title, issue_lines), _short_title(sec.title)
+    figure = _FIGURE.search(sec.title)
+    happened = Scene(type="stat" if figure else "bullets", chapter=chapter, title=title,
+                     narration=" ".join([dek] + sentences[:4]).strip())
+    if figure:
+        happened.stat = Stat(value=figure.group(0).strip(), label=_first_words(_FIGURE.sub("", title).strip(" ,"), 6).rstrip("…"),
+                             context=_clip(dek, 14))
+    else:
+        happened.bullets = [_clip(x) for x in sentences[:3]]
+    out = [happened]
+    if why or watch:
+        bullets = [_clip(x) for x in split_sentences(why)[:2]] + ([f"Watch: {_clip(watch_item, 9)}"] if watch else [])
+        out.append(Scene(type="bullets", chapter=chapter, title="Why it matters", bullets=bullets,
+                         narration=" ".join(filter(None, [f"Why it matters: {why}" if why else "",
+                                                          f"What to watch: {watch}" if watch else ""]))))
+    return out
+
+
+def _fallback_plain(nl: Newsletter, index: factcheck.NumberIndex, allowed: set[int]) -> Storyboard:
+    by_id = {s.id: s for s in nl.sections}
+    issue_lines = by_id["in-this-issue"].content.splitlines() if "in-this-issue" in by_id else []
+    body: list[Scene] = []
+    if "markets" in by_id:
+        sents = split_sentences(by_id["markets"].content)
+        parts = sents if len(sents) > 1 else [p.strip() for p in re.split(r",\s+(?:while|as|but)\s+|;\s*", sents[0]) if p.strip()] if sents else []
+        body.append(Scene(type="bullets", chapter="Big picture", title="The big picture",
+                          bullets=[_clip(p) for p in parts[:3]], narration="Start with the big picture. " + " ".join(sents)))
+    stories = [s for s in nl.sections if s.content.startswith("[")]
+    for sec in stories:
+        body += _story_scenes(sec, issue_lines)
+    if "quick-hits" in by_id:
+        hits = [h for h in by_id["quick-hits"].content.splitlines() if h.strip()]
+        for n in range(0, len(hits), 5):
+            group = hits[n:n + 5]
+            body.append(Scene(type="bullets", chapter="Quick hits", title="Quick hits" + (" (continued)" if n else ""),
+                              bullets=[_clip(h, 10) for h in group],
+                              narration=("Now some quick hits. " if n == 0 else "And a few more. ") + " ".join(group)))
+    chapters = list(dict.fromkeys(s.chapter for s in body))
+    summary_first = split_sentences(nl.summary)[0] if nl.summary else ""
+    scenes = [Scene(type="cold_open", chapter="Intro", headline=nl.title, subtitle=_first_words(summary_first, 16),
+                    narration="Welcome to the Oswol daily brief. " + " ".join(split_sentences(nl.summary)[:3])),
+              Scene(type="agenda", chapter="Today", title="Today's brief", bullets=chapters[:6],
+                    narration=f"Here's what we'll cover: {', '.join(chapters[:6])}.")]
+    scenes += body
+    bottom = by_id.get("the-bottom-line")
+    takeaways = [_short_title(s.title) for s in stories[:3]]
+    scenes.append(Scene(type="recap", chapter="Recap", title="Three things to remember",
+                        bullets=[_clip(t, 9) for t in takeaways],
+                        narration="To recap. " + " ".join(f"{t}." for t in takeaways) + (f" The bottom line: {bottom.content}" if bottom else "")))
+    board = Storyboard(title=nl.title, date=nl.date, summary=nl.summary[:400], scenes=scenes, generated_by="fallback", model="none")
+    board = finalize(board, nl)
+    board, _ = factcheck.sanitize(board, index, allowed)
+    return board
+
+
 def _fallback(nl: Newsletter, index: factcheck.NumberIndex, allowed: set[int]) -> Storyboard:
+    if any(s.content.startswith("[") for s in nl.sections):
+        return _fallback_plain(nl, index, allowed)
     regime = None
     m = re.search(r"\b(RISK-ON|RISK-OFF|MIXED|NEUTRAL)\b", nl.full_text())
     if m:

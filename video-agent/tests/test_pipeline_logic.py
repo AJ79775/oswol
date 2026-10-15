@@ -216,3 +216,14 @@ def test_dollar_amounts_are_spoken_naturally():
     out = to_speech("EPS of $3.03, beating by $0.11. Revenue hit $20.34 billion, after touching $84,000, and a $1.2B fine.")
     assert "3.03 dollars, beating by 0.11 dollars." in out
     assert "20.34 billion dollars" in out and "84,000 dollars," in out and "1.2 billion dollars fine" in out
+
+
+def test_system_prompt_files_load_and_example_is_valid():
+    from oswol_video.storyboard import PROMPT_DIR, load_system_prompt
+    from oswol_video.models import Storyboard
+
+    text = load_system_prompt()
+    for must in ("Oswol Daily Brief", "Hard rules", "This is not investment advice.", "NEVER reuse its facts"):
+        assert must in text
+    example = Storyboard.model_validate_json((PROMPT_DIR / "example_storyboard.json").read_text())
+    assert example.scenes[0].type == "cold_open" and example.scenes[-1].type == "outro"

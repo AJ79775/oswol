@@ -3,6 +3,7 @@
   python -m oswol_video run            make (and publish) today's video
   python -m oswol_video run --force    rebuild even if today's video exists
   python -m oswol_video doctor         check every dependency and service
+  python -m oswol_video script         write only the storyboard with FreeLLMAPI (fast prompt test)
   python -m oswol_video preview        render one still per scene for review (no video)
   python -m oswol_video gallery        rebuild the gallery pages and feeds
   python -m oswol_video voices         list voices / write a voice sample
@@ -70,6 +71,32 @@ def cmd_preview(args) -> int:
     renderer.render_stills(story, shots, s)
     print(f"Wrote {len(shots)} stills + storyboard.json to {out}")
     return 0
+
+
+def cmd_script(args) -> int:
+    """Only the storyboard: test the FreeLLMAPI prompt in seconds, without voice or rendering."""
+    from . import storyboard
+    from .sources import fetch_newsletter
+
+    s = _settings(args)
+    nl = fetch_newsletter(s)
+    if args.dump_prompt:
+        Path(args.dump_prompt).write_text("=== SYSTEM PROMPT ===\n" + storyboard.load_system_prompt()
+                                          + "\n\n=== USER MESSAGE ===\n" + storyboard._user_prompt(nl, s, "", ""),
+                                          encoding="utf-8")
+        print(f"Prompt written to {args.dump_prompt}")
+    board = storyboard.generate(nl, s)
+    out = Path(args.out or (s.work_dir / nl.date / "storyboard-draft.json"))
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(board.model_dump_json(indent=2, by_alias=True), encoding="utf-8")
+    words = sum(len(x.narration.split()) for x in board.scenes)
+    print(f"\n{board.title}  ({nl.date})")
+    print(f"script by: {board.generated_by}  model: {board.model}")
+    print(f"{len(board.scenes)} scenes, {words} words, about {words / s.words_per_minute:.1f} min")
+    for i, x in enumerate(board.scenes):
+        print(f"  {i:02d} {x.type:<11} {x.chapter[:18]:<18} {x.title or x.headline}")
+    print(f"\nSaved to {out}\nRender it with: oswol-video run --file <newsletter> --storyboard {out} --force")
+    return 0 if board.generated_by == "llm" or args.no_llm else 2
 
 
 def cmd_gallery(args) -> int:
@@ -175,6 +202,13 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--no-llm", action="store_true")
     p.add_argument("--file")
     p.add_argument("--date")
+    sc = sub.add_parser("script", help="write only the storyboard with the LLM (fast prompt test)")
+    sc.add_argument("--file")
+    sc.add_argument("--date")
+    sc.add_argument("--out", help="where to save the storyboard JSON")
+    sc.add_argument("--dump-prompt", help="also save the exact system + user prompt to this file")
+    sc.add_argument("--no-llm", action="store_true")
+    sc.add_argument("--minutes", type=float)
     sub.add_parser("gallery", help="rebuild gallery and feeds")
     sub.add_parser("doctor", help="check dependencies and services")
     v = sub.add_parser("voices", help="list voices or write a sample")
@@ -183,7 +217,7 @@ def main(argv: list[str] | None = None) -> int:
     v.add_argument("--text", default="Good morning. This is your Oswol daily brief: calm intelligence for the next generation of investors.")
     args = ap.parse_args(argv)
     _setup_logging(args.verbose)
-    return {"run": cmd_run, "preview": cmd_preview, "gallery": cmd_gallery, "doctor": cmd_doctor, "voices": cmd_voices}[args.cmd](args)
+    return {"run": cmd_run, "script": cmd_script, "preview": cmd_preview, "gallery": cmd_gallery, "doctor": cmd_doctor, "voices": cmd_voices}[args.cmd](args)
 
 
 if __name__ == "__main__":
