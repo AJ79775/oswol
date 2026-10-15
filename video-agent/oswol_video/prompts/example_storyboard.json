@@ -1,0 +1,148 @@
+{
+ "title": "Morgan Stanley Beats, BofA Hit by $1.2B Fine, BlackRock Hits $15.5T",
+ "date": "2026-10-14",
+ "regime": null,
+ "summary": "Q3 bank earnings split in two: Morgan Stanley beat on a $909 million equities trading surge, Bank of America missed after a $1.2 billion Treasury fine, and BlackRock's assets reached $15.5 trillion.",
+ "scenes": [
+  {
+   "type": "cold_open",
+   "chapter": "Intro",
+   "headline": "Morgan Stanley beats, BofA hit by fine, BlackRock hits $15.5T",
+   "subtitle": "A tale of two financial titans as third-quarter bank earnings diverge.",
+   "regime": null,
+   "narration": "Good morning, and welcome to the Oswol daily brief for Wednesday, October 14. Today's bank earnings tell a tale of two very different financial titans. Trading-heavy Wall Street firms posted blockbuster numbers, while a regulatory penalty delivered a heavy blow to one of the biggest retail banks. Let's walk through what happened, why it matters, and what to watch next."
+  },
+  {
+   "type": "agenda",
+   "chapter": "Today",
+   "title": "Today's brief",
+   "bullets": [
+    "Morgan Stanley",
+    "Bank of America",
+    "BlackRock",
+    "Quick hits"
+   ],
+   "narration": "Here's what we'll cover: Morgan Stanley's trading beat, Bank of America's fine and profit miss, BlackRock's new milestone, and a round of quick hits."
+  },
+  {
+   "type": "overview",
+   "chapter": "Morgan Stanley",
+   "title": "Morgan Stanley tops estimates",
+   "tiles": [
+    {
+     "label": "Earnings per share",
+     "value": "$3.03",
+     "note": "GAAP · beat by $0.11"
+    },
+    {
+     "label": "Revenue",
+     "value": "$20.34B",
+     "note": "Beat by $230M"
+    },
+    {
+     "label": "Equities trading",
+     "value": "$909M",
+     "note": "Above expectations"
+    },
+    {
+     "label": "Dividend",
+     "value": "$1.15",
+     "note": "Per share, quarterly"
+    }
+   ],
+   "subtitle": "Beat on both the top and bottom lines.",
+   "bullets": [
+    "Trading-led",
+    "Investment banking strong"
+   ],
+   "narration": "First, Morgan Stanley, which beat consensus estimates on both the top and bottom lines. Earnings per share, the profit attributed to each share, came in at $3.03 under GAAP, the standard accounting rules, beating expectations by $0.11. Quarterly revenue reached $20.34 billion, $230 million above estimates. The standout was equities trading, which exceeded expectations by $909 million amid active markets. And the bank declared a quarterly dividend of $1.15 per share."
+  },
+  {
+   "type": "flow",
+   "chapter": "Bank of America",
+   "title": "How a fine became a profit miss",
+   "nodes": [
+    {
+     "id": "a",
+     "label": "$1.2B Treasury fine",
+     "kind": "cause",
+     "detail": "Announced Tuesday"
+    },
+    {
+     "id": "b",
+     "label": "Weaker core results",
+     "kind": "cause",
+     "detail": "Margin pressure"
+    },
+    {
+     "id": "c",
+     "label": "Profit miss",
+     "kind": "mechanism",
+     "detail": "Q3 profit dropped"
+    },
+    {
+     "id": "d",
+     "label": "Shares decline",
+     "kind": "risk",
+     "detail": "Trailing trading-led peers"
+    }
+   ],
+   "edges": [
+    {
+     "from": "a",
+     "to": "c",
+     "label": "CLIPS INCOME"
+    },
+    {
+     "from": "b",
+     "to": "c",
+     "label": "COMPOUNDS"
+    },
+    {
+     "from": "c",
+     "to": "d",
+     "label": "SENDS LOWER"
+    }
+   ],
+   "narration": "Now to Bank of America, where the story was much tougher. It started with a $1.2 billion penalty, announced on Tuesday by the U.S. Treasury Department. At the same time, the bank's core results came in weaker than expected, with margins already under pressure. The fine directly clipped net income, and together these led to a third-quarter profit drop and an earnings miss. The result: its shares declined on Wednesday, leaving it behind peers that benefited from stronger trading and dealmaking."
+  },
+  {
+   "type": "stat",
+   "chapter": "BlackRock",
+   "title": "BlackRock's new milestone",
+   "stat": {
+    "value": "$15.5T",
+    "label": "Assets under management",
+    "context": "Up 15%, roughly half the size of the U.S. economy."
+   },
+   "narration": "Next, BlackRock, the world's largest asset manager. Its assets under management, meaning the total client money it invests, climbed to nearly $15.5 trillion after a 15% expansion. That's roughly half the size of the entire U.S. economy. Growth came from broad inflows into passive index products, exchange-traded funds and institutional mandates, helped by higher market valuations and sticky client allocations."
+  },
+  {
+   "type": "bullets",
+   "chapter": "Quick hits",
+   "title": "Quick hits: crypto and digital assets",
+   "bullets": [
+    "Bitcoin holds above $83,000",
+    "Qivalis wins e-money license for euro token",
+    "Hypercall: $640M volume, led by S&P 500 options"
+   ],
+   "narration": "Now some quick hits, starting with crypto. Bitcoin held above $83,000 after briefly touching $84,000, ahead of upcoming U.S. inflation data. The Dutch central bank granted Qivalis an e-money license for a euro token that complies with Europe's MiCA rules. Hypercall, an exchange built on Hyperliquid, reported $640 million in volume, led by S&P 500 options trading."
+  },
+  {
+   "type": "recap",
+   "chapter": "Recap",
+   "title": "Three things to remember",
+   "bullets": [
+    "Trading scale created clear winners",
+    "A $1.2B fine sank BofA's quarter",
+    "BlackRock's $15.5T shows how big scale gets"
+   ],
+   "narration": "So, three things to remember. First, trading scale and operational discipline are creating clear winners, with Morgan Stanley's trading desks leading the way. Second, a $1.2 billion fine shows how quickly regulatory penalties can press down on a quarter, as Bank of America found out. Third, BlackRock's $15.5 trillion in assets shows how concentrated global finance has become."
+  },
+  {
+   "type": "outro",
+   "chapter": "Outro",
+   "narration": "That's your Oswol daily brief. Until tomorrow, keep your eye on the numbers. This is not investment advice."
+  }
+ ]
+}

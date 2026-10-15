@@ -1,0 +1,37 @@
+# OPTIONAL: NVIDIA Switchyard in front of FreeLLMAPI.
+# FreeLLMAPI already fails over between free providers; Switchyard adds a per-request
+# "is a small model enough?" decision plus routing logs you can benchmark.
+#
+#   cargo install --locked switchyard-server        # or: pip install nemo-switchyard
+#   export LLM_API_KEY=freellmapi-...               # same unified key as /etc/oswol-video/env
+#   switchyard-server --config routes.toml --dry-run
+#   switchyard-server --config routes.toml --host 127.0.0.1 --port 4000
+#
+# Then in /etc/oswol-video/env:
+#   LLM_BASE_URL=http://127.0.0.1:4000/v1
+#   LLM_MODELS=switchyard/oswol,auto:smart
+schema_version = 1
+
+[llm_clients.freellmapi]
+format = "openai_chat"
+base_url = "http://127.0.0.1:3001/v1"
+api_key_env = "LLM_API_KEY"
+max_retries = 2
+
+[targets.fast]
+id = "auto:fast"
+llm_client = "freellmapi"
+
+[targets.smart]
+id = "auto:smart"
+llm_client = "freellmapi"
+
+[routes.oswol]
+id = "switchyard/oswol"
+type = "llm_classifier"
+mode = "capability"
+classifier_target = "fast"
+strong_target = "smart"
+weak_target = "fast"
+# High threshold: the storyboard is a demanding task, so most requests should go to "smart".
+base_threshold = 0.7

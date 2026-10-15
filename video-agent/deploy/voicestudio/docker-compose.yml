@@ -1,0 +1,25 @@
+# OPTIONAL: VoiceStudio (debpalash/VoiceStudio) as the narrator engine, CPU only.
+# The built-in Kokoro voice is the default and needs none of this.
+#   docker compose -f deploy/voicestudio/docker-compose.yml up -d
+# Then in /etc/oswol-video/env:
+#   TTS_ENGINE=voicestudio
+#   VOICESTUDIO_URL=http://127.0.0.1:3900
+#   VOICESTUDIO_ENGINE=kittentts        # CPU-friendly engine
+#   TTS_VOICE=expr-voice-2-m            # or a saved voice-profile id for a designed/cloned voice
+#   VOICESTUDIO_SEED=42                 # fixed seed = the same voice every day
+#   VOICESTUDIO_API_KEY=<same as OMNIVOICE_API_KEY below>
+# Notes: VoiceStudio is AGPL-3.0; it adds an inaudible AudioSeal watermark by default.
+services:
+  voicestudio:
+    image: ghcr.io/debpalash/voicestudio:stable
+    ports:
+      - "127.0.0.1:3900:3900"
+    environment:
+      OMNIVOICE_DEVICE: cpu
+      OMNIVOICE_API_KEY: ${VOICESTUDIO_API_KEY:?set VOICESTUDIO_API_KEY}
+      OMNIVOICE_ANALYTICS_DISABLED: "1"
+    volumes:
+      - voicestudio_data:/app/omnivoice_data
+    restart: unless-stopped
+volumes:
+  voicestudio_data: {}

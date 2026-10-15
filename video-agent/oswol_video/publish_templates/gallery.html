@@ -1,0 +1,48 @@
+{% extends "_base.html" %}
+{% block style %}
+.hero { display: grid; grid-template-columns: 1.6fr 1fr; gap: 28px; margin: 32px 0 44px; align-items: start; }
+.hero h1 { font-size: 30px; line-height: 1.15; margin: 10px 0 12px; }
+.hero p { color: var(--ink-md); margin: 0 0 16px; }
+.meta { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; }
+.grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+.item { text-decoration: none; overflow: hidden; display: block; }
+.item img { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; display: block; border-bottom: 1px solid var(--line); }
+.item .in { padding: 14px 16px 16px; }
+.item h3 { font-size: 16px; line-height: 1.3; margin-top: 6px; }
+.item:hover { border-color: var(--champagne); }
+.empty { padding: 60px 0; text-align: center; color: var(--ink-lo); }
+@media (max-width: 860px) { .hero { grid-template-columns: 1fr; } .grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 520px) { .grid { grid-template-columns: 1fr; } .hero h1 { font-size: 24px; } }
+{% endblock %}
+{% block body %}
+{% if videos %}{% set v = videos[0] %}
+<section class="hero">
+  <video controls preload="metadata" poster="{{ v.thumb_url }}" src="{{ v.video_url }}">
+    {% if v.vtt_url %}<track kind="captions" src="{{ v.vtt_url }}" srclang="en" label="English">{% endif %}
+  </video>
+  <div>
+    <div class="kick">Latest · {{ v.pretty_date }}</div>
+    <h1>{{ v.title }}</h1>
+    <div class="meta">
+      <span class="chip mono">{{ v.length }}</span>
+      {% if v.regime %}<span class="chip {{ {'RISK-ON':'up','RISK-OFF':'down','MIXED':'warn'}.get(v.regime|upper, '') }}">{{ v.regime }}</span>{% endif %}
+      {% if v.is_demo %}<span class="chip warn">Demo data</span>{% endif %}
+    </div>
+    <p>{{ v.summary }}</p>
+    <a class="btn" href="{{ v.page }}">Chapters &amp; transcript →</a>
+    <a class="btn" href="{{ v.video_url }}" download>Download MP4</a>
+  </div>
+</section>
+<h2 style="font-size:18px;margin-bottom:16px">All briefs</h2>
+<div class="grid">
+  {% for v in videos %}
+  <a class="card item" href="{{ v.page }}">
+    <img src="{{ v.thumb_url }}" alt="" loading="lazy">
+    <div class="in"><div class="kick" style="font-size:11px">{{ v.pretty_date }} · <span class="mono">{{ v.length }}</span></div><h3>{{ v.title }}</h3></div>
+  </a>
+  {% endfor %}
+</div>
+{% else %}
+<div class="empty">No videos yet. The first brief appears here after the daily run.</div>
+{% endif %}
+{% endblock %}

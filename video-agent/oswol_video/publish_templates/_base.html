@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}Oswol Daily Brief{% endblock %}</title>
+<meta name="description" content="{% block desc %}Daily AI market brief videos from Oswol.{% endblock %}">
+<link rel="icon" href="{{ base }}/assets/oswol-mark.png">
+<link rel="alternate" type="application/rss+xml" title="Oswol Daily Brief" href="{{ base }}/feed.xml">
+<link rel="alternate" type="application/feed+json" title="Oswol Daily Brief" href="{{ base }}/feed.json">
+<style>
+@font-face { font-family: "Sora"; font-weight: 600; src: url("{{ base }}/assets/fonts/sora-latin-600-normal.woff2") format("woff2"); }
+@font-face { font-family: "Sora"; font-weight: 500; src: url("{{ base }}/assets/fonts/sora-latin-500-normal.woff2") format("woff2"); }
+@font-face { font-family: "Geist"; font-weight: 400; src: url("{{ base }}/assets/fonts/geist-sans-latin-400-normal.woff2") format("woff2"); }
+@font-face { font-family: "Geist"; font-weight: 500; src: url("{{ base }}/assets/fonts/geist-sans-latin-500-normal.woff2") format("woff2"); }
+@font-face { font-family: "JetBrains Mono"; font-weight: 500; src: url("{{ base }}/assets/fonts/jetbrains-mono-latin-500-normal.woff2") format("woff2"); }
+:root {
+  --bg-0: #0A0D0F; --bg-1: #0F1418; --bg-2: #141B20; --bg-3: #1B232A;
+  --line: rgba(241,235,221,.08); --line-2: rgba(241,235,221,.14);
+  --ink-hi: #F1EBDD; --ink-md: #C9C4B7; --ink-lo: #8A8F94;
+  --champagne: #D8C6A7; --ai: #22D3EE; --up: #10B981; --down: #FB7185; --warn: #F59E0B;
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: light) {
+  :root { --bg-0: #FFFFFF; --bg-1: #FFFFFF; --bg-2: #F7F5EE; --bg-3: #ECE6D4;
+    --line: rgba(45,55,64,.10); --line-2: rgba(45,55,64,.18);
+    --ink-hi: #1F262C; --ink-md: #3F4A53; --ink-lo: #6F7780; --champagne: #8B7350; --ai: #0891B2;
+    --up: #047857; --down: #DC2626; --warn: #B45309; color-scheme: light; }
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--bg-0); color: var(--ink-hi); font: 16px/1.55 "Geist", system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+a { color: inherit; }
+.wrap { max-width: 1180px; margin: 0 auto; padding: 0 16px; }
+header.top { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 22px 0; border-bottom: 1px solid var(--line); }
+.brand { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+.brand img { width: 34px; height: 34px; border-radius: 50%; }
+.brand b { font: 600 21px "Sora", sans-serif; letter-spacing: -.01em; }
+.kick { font: 500 12px "JetBrains Mono", monospace; letter-spacing: .18em; text-transform: uppercase; color: var(--champagne); }
+.muted { color: var(--ink-lo); }
+.mono { font-family: "JetBrains Mono", monospace; font-feature-settings: "tnum" 1; }
+h1, h2, h3 { font-family: "Sora", sans-serif; font-weight: 600; letter-spacing: -.015em; margin: 0; }
+.chip { display: inline-flex; align-items: center; gap: 6px; font: 500 11px "JetBrains Mono", monospace; letter-spacing: .12em;
+  text-transform: uppercase; padding: 5px 10px; border-radius: 999px; border: 1px solid var(--line-2); color: var(--ink-md); white-space: nowrap; }
+.chip.up { color: var(--up); border-color: color-mix(in srgb, var(--up) 40%, transparent); }
+.chip.down { color: var(--down); border-color: color-mix(in srgb, var(--down) 40%, transparent); }
+.chip.warn { color: var(--warn); border-color: color-mix(in srgb, var(--warn) 40%, transparent); }
+.card { background: var(--bg-1); border: 1px solid var(--line-2); border-radius: 14px; }
+video { width: 100%; display: block; border-radius: 12px; background: #000; aspect-ratio: 16 / 9; }
+.btn { display: inline-flex; align-items: center; gap: 8px; padding: 9px 14px; border-radius: 10px; border: 1px solid var(--line-2);
+  text-decoration: none; font: 500 14px "Geist", sans-serif; color: var(--ink-hi); background: var(--bg-2); }
+.btn:hover { border-color: var(--champagne); }
+footer { margin: 56px 0 40px; padding-top: 20px; border-top: 1px solid var(--line); font-size: 13px; color: var(--ink-lo); }
+{% block style %}{% endblock %}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <a class="brand" href="{{ base }}/"><img src="{{ base }}/assets/oswol-mark.png" alt=""><b>oswol</b><span class="kick">Daily Brief</span></a>
+    <nav class="muted mono" style="font-size:12px;letter-spacing:.1em"><a href="{{ base }}/feed.xml">RSS</a> · <a href="{{ base }}/latest.mp4">LATEST.MP4</a></nav>
+  </header>
+  {% block body %}{% endblock %}
+  <footer>Oswol provides market data, public-disclosure summaries, social sentiment, and AI-generated educational analysis.
+    It does not provide investment, legal, tax, or financial advice. Public filings may be delayed, incomplete, amended, or historical.
+    Videos are generated automatically from the day's newsletter; every figure is checked against the newsletter before publishing.</footer>
+</div>
+{% block script %}{% endblock %}
+</body>
+</html>

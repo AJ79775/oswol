@@ -1,0 +1,47 @@
+{
+  "title": "Understanding Today's Tech Rally: Why AI Infrastructure Spending Drives Semis",
+  "date": "2026-10-15",
+  "summary": "Today's market action offers a case study in earnings surprise dynamics. When a bellwether like NVIDIA reports above expectations, it signals confidence in the broader AI investment cycle, creating positive spillover effects for adjacent names like AMD and Broadcom.",
+  "sections": [
+    {
+      "id": "overview",
+      "title": "Market Overview",
+      "content": "SPY +0.68% · QQQ +1.12% · IWM −0.42% · VIX 13.42 (−4.82%)\nMarket regime: RISK-ON. Tech leading. Defensives lagging. Rates holding elevated.",
+      "warning": null
+    },
+    {
+      "id": "movers",
+      "title": "Top Movers",
+      "content": "Gainers: NVDA +4.21%, AMD +4.27%, META +1.84%, SOL +3.82%\nLosers: TSLA −2.36%, INTC −1.82%, XOM −0.88%",
+      "warning": null
+    },
+    {
+      "id": "smart-money",
+      "title": "Smart Money",
+      "content": "7 Congressional NVDA purchases in last 30 days. Lisa Su (AMD CEO) bought open market. No major insider exits flagged.",
+      "warning": "STOCK Act filings carry 30–45 day delay — these transactions may not reflect current positions."
+    },
+    {
+      "id": "social",
+      "title": "Social Narratives",
+      "content": "AI Power Demand narrative at peak velocity (94/100, 48.2k mentions). BTC ETF inflows story gaining traction. EV demand slowdown trending bearish. Fed rate cut timeline being repriced.",
+      "warning": "Social sentiment may be noisy, manipulated, or incomplete."
+    },
+    {
+      "id": "macro",
+      "title": "Macro Watch",
+      "content": "PCE Price Index due Friday — consensus 2.6% YoY. Fed rhetoric remains hawkish. 10Y yield at 4.28%. DXY 104.12.",
+      "warning": null
+    },
+    {
+      "id": "watchlist",
+      "title": "Watchlist Movers",
+      "content": "Your tracked names: NVDA +4.21% (outperform), AMD +4.27% (outperform), META +1.84% (in line), MSFT +0.80% (in line), BTC +2.48% (momentum).",
+      "warning": null
+    }
+  ],
+  "disclaimer": "This newsletter is for informational purposes only and does not constitute financial advice. All data is demo/simulated. Past performance does not indicate future results.",
+  "source_url": "http://127.0.0.1:3000/api/ai/newsletter",
+  "is_demo": true,
+  "raw_text": "# Understanding Today's Tech Rally: Why AI Infrastructure Spending Drives Semis\n*Thursday, October 15, 2026*\n\nToday's market action offers a case study in earnings surprise dynamics. When a bellwether like NVIDIA reports above expectations, it signals confidence in the broader AI investment cycle, creating positive spillover effects for adjacent names like AMD and Broadcom.\n\n## Market Overview\nSPY +0.68% · QQQ +1.12% · IWM −0.42% · VIX 13.42 (−4.82%)\nMarket regime: RISK-ON. Tech leading. Defensives lagging. Rates holding elevated.\n## Top Movers\nGainers: NVDA +4.21%, AMD +4.27%, META +1.84%, SOL +3.82%\nLosers: TSLA −2.36%, INTC −1.82%, XOM −0.88%\n## Smart Money\n7 Congressional NVDA purchases in last 30 days. Lisa Su (AMD CEO) bought open market. No major insider exits flagged.\n> ⚠️ STOCK Act filings carry 30–45 day delay — these transactions may not reflect current positions.\n## Social Narratives\nAI Power Demand narrative at peak velocity (94/100, 48.2k mentions). BTC ETF inflows story gaining traction. EV demand slowdown trending bearish. Fed rate cut timeline being repriced.\n> ⚠️ Social sentiment may be noisy, manipulated, or incomplete.\n## Macro Watch\nPCE Price Index due Friday — consensus 2.6% YoY. Fed rhetoric remains hawkish. 10Y yield at 4.28%. DXY 104.12.\n## Watchlist Movers\nYour tracked names: NVDA +4.21% (outperform), AMD +4.27% (outperform), META +1.84% (in line), MSFT +0.80% (in line), BTC +2.48% (momentum)."
+}

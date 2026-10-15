@@ -1,0 +1,30 @@
+[Unit]
+Description=Oswol Daily Brief video agent (newsletter -> narrated explainer video)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=oswol-video
+Group=oswol-video
+EnvironmentFile=/etc/oswol-video/env
+Environment=PLAYWRIGHT_BROWSERS_PATH=/opt/oswol-video/browsers
+Environment=PYTHONUNBUFFERED=1
+WorkingDirectory=/opt/oswol-video/app
+ExecStart=/opt/oswol-video/venv/bin/python -m oswol_video run
+# Stay polite to the Oswol app and FreeLLMAPI running on the same VPS.
+Nice=10
+CPUWeight=40
+IOSchedulingClass=best-effort
+IOSchedulingPriority=7
+TimeoutStartSec=3h
+# Hardening
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectHome=yes
+ProtectSystem=strict
+ReadWritePaths=/var/lib/oswol-video /var/www/oswol-videos
+ReadOnlyPaths=/opt/oswol-video
+
+[Install]
+WantedBy=multi-user.target
